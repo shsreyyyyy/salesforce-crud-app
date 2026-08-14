@@ -42,14 +42,18 @@ app.use(
           typeof session === "string" ? JSON.parse(session) : session,
       },
     }),
+
     name: "sf.sid",
     secret: process.env.SESSION_SECRET,
+
     resave: false,
     saveUninitialized: false,
+
     cookie: {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: true,
+      sameSite: "none",
+      path: "/",
       maxAge: 1000 * 60 * 60 * 8,
     },
   })
