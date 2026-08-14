@@ -23,8 +23,7 @@ function generateCodeChallenge(codeVerifier) {
     .digest("base64url");
 }
 
-
-
+// Salesforce Login
 router.get("/login", (req, res) => {
   const state = crypto.randomBytes(16).toString("hex");
 
@@ -47,7 +46,7 @@ router.get("/login", (req, res) => {
   res.redirect(authUrl);
 });
 
-
+// Salesforce OAuth Callback
 router.get("/callback", async (req, res) => {
   const {
     code,
@@ -79,7 +78,6 @@ router.get("/callback", async (req, res) => {
         client_id: SF_CLIENT_ID,
         client_secret: SF_CLIENT_SECRET,
         redirect_uri: SF_REDIRECT_URI,
-
         code_verifier: req.session.codeVerifier,
       }),
       {
@@ -107,7 +105,6 @@ router.get("/callback", async (req, res) => {
     res.redirect(
       `${FRONTEND_URL}/?logged_in=1`
     );
-
   } catch (err) {
     console.error(
       "OAuth callback error:",
@@ -120,8 +117,11 @@ router.get("/callback", async (req, res) => {
   }
 });
 
-
+// Check Authentication Status
 router.get("/status", (req, res) => {
+  // Prevent browser/proxy caching of authentication status
+  res.set("Cache-Control", "no-store");
+
   if (req.session.sf?.accessToken) {
     return res.json({
       loggedIn: true,
@@ -134,7 +134,7 @@ router.get("/status", (req, res) => {
   });
 });
 
-
+// Logout
 router.post("/logout", (req, res) => {
   req.session.destroy(() => {
     res.json({
