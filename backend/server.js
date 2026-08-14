@@ -36,6 +36,11 @@ app.use(
     store: new RedisStore({
       client: redis,
       prefix: "sf-session:",
+      serializer: {
+        stringify: (session) => JSON.stringify(session),
+        parse: (session) =>
+          typeof session === "string" ? JSON.parse(session) : session,
+      },
     }),
     name: "sf.sid",
     secret: process.env.SESSION_SECRET,
