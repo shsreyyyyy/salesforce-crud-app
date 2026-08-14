@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://salesforce-crud-app-two.vercel.app/auth/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://salesforce-crud-app-two.vercel.app/api/:path*"
+    }
+  ]
+}
