@@ -93,6 +93,7 @@ router.get("/callback", async (req, res) => {
       instance_url,
     } = tokenRes.data;
 
+    // Store Salesforce session data
     req.session.sf = {
       accessToken: access_token,
       refreshToken: refresh_token,
@@ -102,9 +103,23 @@ router.get("/callback", async (req, res) => {
     delete req.session.oauthState;
     delete req.session.codeVerifier;
 
-    res.redirect(
-      `${FRONTEND_URL}/?logged_in=1`
-    );
+    // IMPORTANT:
+    // Explicitly save session to Redis before redirecting
+    req.session.save((saveError) => {
+      if (saveError) {
+        console.error("Session save error:", saveError);
+
+        return res.redirect(
+          `${FRONTEND_URL}?auth_error=session_save_failed`
+        );
+      }
+
+      console.log("Salesforce session saved successfully");
+
+      res.redirect(
+        `${FRONTEND_URL}/?logged_in=1`
+      );
+    });
   } catch (err) {
     console.error(
       "OAuth callback error:",
@@ -119,7 +134,6 @@ router.get("/callback", async (req, res) => {
 
 // Check Authentication Status
 router.get("/status", (req, res) => {
-  // Prevent browser/proxy caching of authentication status
   res.set("Cache-Control", "no-store");
 
   if (req.session.sf?.accessToken) {
@@ -136,7 +150,14 @@ router.get("/status", (req, res) => {
 
 // Logout
 router.post("/logout", (req, res) => {
-  req.session.destroy(() => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        error: "Logout failed",
+      });
+    }
+
     res.json({
       success: true,
     });
